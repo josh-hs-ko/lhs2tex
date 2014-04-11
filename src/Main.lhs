@@ -30,6 +30,7 @@
 > import qualified Typewriter
 > import qualified Math
 > import qualified MathPoly as Poly
+> import qualified CollectDef
 > import qualified NewCode
 > import Directives
 > import Document
@@ -161,6 +162,8 @@ because with some versions of GHC it triggers ambiguity errors with
 >   , Option []    ["verb"]    (NoArg (return, id, [Verb]))                                 "verbatim"
 >   , Option []    ["haskell"] (NoArg (\s -> return $ s { lang = Haskell}, id, []))         "Haskell lexer (default)"
 >   , Option []    ["agda"]    (NoArg (\s -> return $ s { lang = Agda}, id, []))            "Agda lexer"
+>   , Option []    ["collect-def"]
+>                              (NoArg (return, id, [CollectDef]))                           "collect definitions"
 >   , Option []    ["pre"]     (NoArg (return, id, [Pre]))                                  "act as ghc preprocessor"
 >   , Option ['o'] ["output"]  (ReqArg (\f -> (\s -> do h <- openOutputFile f
 >                                                       return $ s { output = h }, id, [])) "file") "specify output file"
@@ -396,6 +399,7 @@ Printing documents.
 > out d                         =  do st <- get; eject (select (style st))
 >     where select CodeOnly     =  Empty
 >           select NewCode      =  Empty
+>           select CollectDef   =  Empty
 >           select _            =  d
 
 > inline, display               :: String -> Formatter
@@ -406,6 +410,7 @@ Printing documents.
 >         select Typewriter st  =  Typewriter.inline (lang st) (fmts st) s
 >         select Math st        =  Math.inline (lang st) (fmts st) (isTrue (toggles st) auto) s
 >         select Poly st        =  Poly.inline (lang st) (fmts st) (isTrue (toggles st) auto) s
+>         select CollectDef st  =  Right (Text (CollectDef.defs s))
 >         select CodeOnly st    =  return Empty
 >         select NewCode st     =  return Empty   -- generate PRAGMA or something?
 
@@ -419,6 +424,7 @@ Printing documents.
 >                                     return (d, st{stacks = sts})
 >         select Poly st        =  do (d, pstack') <- Poly.display (lang st) (lineno st + 1) (fmts st) (isTrue (toggles st) auto) (separation st) (latency st) (pstack st) s
 >                                     return (d, st{pstack = pstack'})
+>         select CollectDef st  =  Right (Text (CollectDef.defs s), st)
 >         select NewCode st     =  do d <- NewCode.display (lang st) (fmts st) s
 >                                     let p = sub'pragma $ Text ("LINE " ++ show (lineno st + 1) ++ " " ++ show (takeFileName $ file st))
 >                                     return ((if pragmas st then ((p <> sub'nl) <>) else id) d, st)

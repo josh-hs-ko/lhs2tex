@@ -16,7 +16,7 @@
 
 These don't really belong into a module named TeXCommands:
 
-> data Style                    =  Version | Help | SearchPath | Copying | Warranty | CodeOnly | NewCode | Verb | Typewriter | Poly | Math | Pre
+> data Style                    =  Version | Help | SearchPath | Copying | Warranty | CollectDef | CodeOnly | NewCode | Verb | Typewriter | Poly | Math | Pre
 >                                  deriving (Eq, Show, Enum, Bounded)
 
 > data Lang                     =  Haskell | Agda
@@ -71,6 +71,7 @@ Encoding and decoding of commands, environments, and directives.
 > instance Representation Style where
 >     representation            =  [ ("tt", Typewriter), ("math", Math), ("poly", Poly),
 >                                    ("verb", Verb), ("code", CodeOnly), ("newcode",NewCode),
+>                                    ("collectdef", CollectDef),
 >                                    ("pre", Pre), ("version", Version),
 >                                    ("copying", Copying), ("warranty", Warranty), ("help", Help), ("searchpath", SearchPath) ]
 > instance Representation Lang where
