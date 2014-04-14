@@ -33,7 +33,7 @@
 
 > inline                        :: Lang -> Formats -> Bool -> String -> Either Exc Doc
 > inline lang fmts auto         =   fmap unNL
->                               >>> tokenize lang
+>                               >>> tokenize lang False
 >                               >=> lift (number 1 1)
 >                               >=> when auto (lift (filter (isNotSpace . token)))
 >                               >=> lift (partition (\t -> catCode t /= White))
@@ -49,7 +49,7 @@
 >                               -> String -> Either Exc (Doc, (Stack,Stack))
 > display lang fmts auto sts col=   lift trim
 >                               >=> lift (expand 0)
->                               >=> tokenize lang
+>                               >=> tokenize lang False
 >                               >=> lift (number 1 1)
 >                               >=> when auto (lift (filter (isNotSpace . token)))
 >                               >=> lift (partition (\t -> catCode t /= White))

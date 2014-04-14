@@ -38,9 +38,9 @@ are subtle differences, and they will grow over time \dots
 \subsubsection{Inline and display code}
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
-> inline                        :: Lang -> Formats -> Bool -> String -> Either Exc Doc
-> inline lang fmts auto         =   fmap unNL
->                               >>> tokenize lang
+> inline                        :: Lang -> Bool -> Formats -> Bool -> String -> Either Exc Doc
+> inline lang hyp fmts auto     =   fmap unNL
+>                               >>> tokenize lang hyp
 >                               >=> lift (number 1 1)
 >                               >=> when auto (lift (filter (isNotSpace . token)))
 >                               >=> lift (partition (\t -> catCode t /= White))
@@ -52,12 +52,12 @@ are subtle differences, and they will grow over time \dots
 >                               >=> lift (latexs fmts)
 >                               >=> lift sub'inline
 
-> display                       :: Lang -> Int -> Formats -> Bool -> Int -> Int -> Stack
+> display                       :: Lang -> Bool -> Int -> Formats -> Bool -> Int -> Int -> Stack
 >                               -> String -> Either Exc (Doc, Stack)
-> display lang line fmts auto sep lat stack
+> display lang hyp line fmts auto sep lat stack
 >                               =   lift trim
 >                               >=> lift (expand 0)
->                               >=> tokenize lang
+>                               >=> tokenize lang hyp
 >                               >=> lift (number line 1)
 >       --                     |>=> when auto (lift (filter (isNotSpace . token)))|
 >                               >=> lift (partition (\t -> catCode t /= White))

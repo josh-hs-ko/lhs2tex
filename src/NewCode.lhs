@@ -37,7 +37,7 @@ in the ``real'' program code. All comments are deleted.
 > display                       :: Lang -> Formats -> String -> Either Exc Doc
 > display lang fmts             =   lift trim
 >                               >=> lift (expand 0)
->                               >=> tokenize lang
+>                               >=> tokenize lang False
 >                               >=> lift (number 1 1)
 >                               >=> lift (partition (\t -> catCode t /= White))
 >                               >=> exprParse *** return

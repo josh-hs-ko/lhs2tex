@@ -8,12 +8,14 @@
 > module HsLexer                (  module HsLexer ) --Token(..), isVarid, isConid, isNotSpace, string, tokenize  )
 > where
 > import Data.Char      (  isSpace, isUpper, isLower, isDigit, isAlphaNum, isPunctuation  )
+> import Data.List      (  isPrefixOf  )
 > import qualified Data.Char ( isSymbol )
 > import Control.Monad
 > import Control.Monad.Error ()
 > import Document
 > import Auxiliaries
 > import TeXCommands    (  Lang(..)  )
+> import CollectDef
 
 %endif
 A Haskell lexer, based on the Prelude function \hs{lex}.
@@ -34,6 +36,7 @@ A Haskell lexer, based on the Prelude function \hs{lex}.
 >                               |  TeX Bool Doc        -- for inline \TeX (True) and format replacements (False)
 >                               |  Qual [String] Token
 >                               |  Op Token
+>                               |  HypTarget Token
 >                                  deriving (Eq, Show)
 
 ks, 03.09.2003: Modified the |Qual| case to contain a list
@@ -75,11 +78,12 @@ This should probably be either documented better or be removed again.
 > string (TeX _ _)              =  "" -- |impossible "string"|
 > string (Qual m s)             =  concatMap (++".") m ++ string s
 > string (Op s)                 =  "`" ++ string s ++ "`"
+> string (HypTarget t)          =  defPrefix ++ string t
 
 The main function.
 
-> tokenize                      :: Lang -> String -> Either Exc [Token]
-> tokenize lang                 =  lift tidyup <=< lift qualify <=< lexify lang
+> tokenize                      :: Lang -> Bool -> String -> Either Exc [Token]
+> tokenize lang hyp             =  lift tidyup <=< lift qualify <=< lexify lang hyp
 
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 \subsubsection{Phase 1}
@@ -90,11 +94,18 @@ The main function.
 
 ks, 28.08.2008: New: Agda and Haskell modes.
 
-> lexify                        :: Lang -> [Char] -> Either Exc [Token]
-> lexify lang []                =  return []
-> lexify lang s@(_ : _)         =  case lex' lang s of
+> lexify                        :: Lang -> Bool -> [Char] -> Either Exc [Token]
+> lexify lang hyp []            =  return []
+> lexify lang hyp s@(_ : _)     =  case (if hyp then lex'' else lex') lang s of
 >     Nothing                   -> Left ("lexical error", s)
->     Just (t, s')              -> do ts <- lexify lang s'; return (t : ts)
+>     Just (t, s')              -> do ts <- lexify lang hyp s'; return (t : ts)
+>
+> lex''                         :: Lang -> String -> Maybe (Token, String)
+> lex'' lang ""                 =  Nothing
+> lex'' lang s
+>   | defPrefix `isPrefixOf` s  =  do (t, s') <- lex' lang (drop (length defPrefix) s)
+>                                     return (HypTarget t , s')
+> lex'' lang s                  =  lex' lang s
 >
 > lex'                          :: Lang -> String -> Maybe (Token, String)
 > lex' lang ""                  =  Nothing
@@ -373,6 +384,7 @@ This is related to the change above in function |string|.
 >     catCode (TeX _ _)         =  NoSep -- |impossible "catCode"|
 >     catCode (Qual _ t)        =  catCode t
 >     catCode (Op _)            =  Sep
+>     catCode (HypTarget c)     =  catCode c
 >     token                     =  id
 >     inherit _ t               =  t
 >     fromToken                 =  id

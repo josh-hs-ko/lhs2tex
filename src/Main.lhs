@@ -8,7 +8,9 @@
 > where
 >
 > import Data.Char ( isSpace )
-> import Data.List ( isPrefixOf )
+> import Data.List ( isPrefixOf, words )
+> import Data.Maybe (  isJust  )
+> import qualified Data.Set as S
 > import System.IO
 > import System.Directory ( copyFile )
 > import System.Console.GetOpt
@@ -164,6 +166,8 @@ because with some versions of GHC it triggers ambiguity errors with
 >   , Option []    ["agda"]    (NoArg (\s -> return $ s { lang = Agda}, id, []))            "Agda lexer"
 >   , Option []    ["collect-def"]
 >                              (NoArg (return, id, [CollectDef]))                           "collect definitions"
+>   , Option []    ["hyp-def"] (ReqArg (\f -> (\s -> do (t , _) <- chaseFile [] f
+>                                                       return $ s { defs = Just (S.fromList (words t)) }, id, [])) "file") "generate hyperlinks to definitions in <file>"
 >   , Option []    ["pre"]     (NoArg (return, id, [Pre]))                                  "act as ghc preprocessor"
 >   , Option ['o'] ["output"]  (ReqArg (\f -> (\s -> do h <- openOutputFile f
 >                                                       return $ s { output = h }, id, [])) "file") "specify output file"
@@ -409,7 +413,7 @@ Printing documents.
 >   where select Verb st        =  Right (Verbatim.inline False s)
 >         select Typewriter st  =  Typewriter.inline (lang st) (fmts st) s
 >         select Math st        =  Math.inline (lang st) (fmts st) (isTrue (toggles st) auto) s
->         select Poly st        =  Poly.inline (lang st) (fmts st) (isTrue (toggles st) auto) s
+>         select Poly st        =  Poly.inline (lang st) (isJust (defs st)) (fmts st) (isTrue (toggles st) auto) s
 >         select CollectDef st  =  Right (Text (CollectDef.defs s))
 >         select CodeOnly st    =  return Empty
 >         select NewCode st     =  return Empty   -- generate PRAGMA or something?
@@ -422,7 +426,7 @@ Printing documents.
 >         select Typewriter st  =  do d <- Typewriter.display (lang st) (fmts st) s; return (d, st)
 >         select Math st        =  do (d, sts) <- Math.display (lang st) (fmts st) (isTrue (toggles st) auto) (stacks st) (align st) s
 >                                     return (d, st{stacks = sts})
->         select Poly st        =  do (d, pstack') <- Poly.display (lang st) (lineno st + 1) (fmts st) (isTrue (toggles st) auto) (separation st) (latency st) (pstack st) s
+>         select Poly st        =  do (d, pstack') <- Poly.display (lang st) (isJust (defs st)) (lineno st + 1) (fmts st) (isTrue (toggles st) auto) (separation st) (latency st) (pstack st) s
 >                                     return (d, st{pstack = pstack'})
 >         select CollectDef st  =  Right (Text (CollectDef.defs s), st)
 >         select NewCode st     =  do d <- NewCode.display (lang st) (fmts st) s

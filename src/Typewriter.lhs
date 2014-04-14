@@ -16,6 +16,7 @@
 > import qualified FiniteMap as FM
 > import Auxiliaries
 > import TeXCommands ( Lang (..) )
+> import CollectDef
 
 %endif
 
@@ -24,13 +25,13 @@
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
 > inline, display               :: Lang -> Formats -> String -> Either Exc Doc
-> inline lang dict              =   tokenize lang
+> inline lang dict              =   tokenize lang False
 >                               >=> lift (latexs sub'thin sub'thin dict)
 >                               >=> lift sub'inline
 
 > display lang dict             =   lift trim
 >                               >=> lift (expand 0)
->                               >=> tokenize lang
+>                               >=> tokenize lang False
 >                               >=> lift (latexs sub'space sub'nl dict)
 >                               >=> lift sub'code
 
@@ -64,7 +65,9 @@
 >     tex _ t@(Op t')           =  replace Empty (string t) (sub'backquoted (tex Empty t'))
 >         where cmd | isConid t'=  sub'consym
 >                   | otherwise =  sub'varsym
->
+>     tex q (HypTarget t)       =  let d = tex q t
+>                                      s = mangling (string t)
+>                                  in  Text ("\\hypertarget{" ++ s ++ "}{}\\index{" ++ s ++ "@") :^: d :^: Text "}" :^: d
 >     replace q s def           =  case FM.lookup s dict of
 >         Just (_, _, [], ts)   -> q <> catenate (map (tex Empty) ts)
 >         _                     -> def

@@ -4,6 +4,8 @@
 >
 > import System.IO
 > import System.Process
+> import Data.Maybe
+> import Data.Set
 >
 > import Version
 > import TeXCommands
@@ -35,6 +37,7 @@
 >                                          stack      :: [Formats],     -- for grouping
 >                                          toggles    :: Toggles,       -- @%let@ defined toggles
 >                                          conds      :: [CondInfo],    -- for conditional directives
+>                                          defs       :: Maybe (Set String),
 >                                          align      :: Maybe Int,     -- math: internal alignment column
 >                                          stacks     :: (Math.Stack, Math.Stack),      -- math: indentation stacks
 >                                          separation :: Int,           -- poly: separation
@@ -65,6 +68,7 @@ Initial state.
 >                                          subst      = FM.empty,
 >                                          stack      = [],
 >                                          conds      = [],
+>                                          defs       = Nothing,
 >                                          align      = Nothing,
 >                                          stacks     = ([], []),
 >                                          separation = 2,

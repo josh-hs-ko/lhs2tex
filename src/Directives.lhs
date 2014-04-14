@@ -73,6 +73,7 @@ Format directives. \NB @%format ( = "(\;"@ is legal.
 >     tex (Conid s)             =  subscript Conid s
 >     tex (Qual [] s)           =  tex s
 >     tex (Qual (m:ms) s)       =  Conid m : tex (Qual ms s)
+>     tex (HypTarget s)         =  tex s
 >      -- ks, 03.09.2003: was "tex (Qual m s) = Conid m : tex s"; 
 >      -- seems strange though ...
 >     subscript f s  
@@ -112,7 +113,7 @@ substitution directive should be invoked here.
 >                                                    ++
 >                                                    [TeX False (Text "}")]
 >         where (t, u)          =  break (== '_') s
->               tok_u           =  tokenize lang (tail u)
+>               tok_u           =  tokenize lang False (tail u)
 >               proc_u          =  case tok_u of
 >                                    Left  _ -> [f (tail u)] -- should not happen
 >                                    Right t -> t
@@ -253,7 +254,7 @@ Primitive Parser.
 Hilfsfunktionen.
 
 > parse                         :: Lang -> Parser Token a -> String -> Either Exc a
-> parse lang p str              =  do ts <- tokenize lang str
+> parse lang p str              =  do ts <- tokenize lang False str
 >                                     let ts' = map (\t -> case t of TeX _ x -> TeX False x; _ -> t) .
 >                                               filter (\t -> catCode t /= White || isTeX t) $ ts
 >                                     maybe (Left msg) Right (run p ts')
