@@ -9,7 +9,7 @@ therefore there has been much overlap between the two modules.
 > module MathCommon             (  module MathCommon  )
 > where
 
-> import Typewriter ( latex )
+> import Typewriter ( latex', lookupTarget )
 > import Document
 > import Directives
 > import HsLexer
@@ -130,8 +130,13 @@ To change this is on my TODO list. Substitutions without arguments,
 hovewer, do work recursively because they are handled again at a later
 stage (by the call to latexs, for instance in leftIndent).
 
-> substitute                    :: (CToken tok,Show tok) => Formats -> Bool -> Chunk (Pos tok) -> [Pos tok]
-> substitute d auto chunk       =  snd (eval chunk)
+> substitute'                   :: (CToken tok,Show tok) => Formats -> Bool -> Chunk (Pos tok) -> [Pos tok]
+> substitute' d auto chunk      =  substitute d FM.empty FM.empty auto chunk
+
+
+> substitute                    :: (CToken tok,Show tok) => Formats -> Defs -> Links -> Bool -> Chunk (Pos tok) -> [Pos tok]
+> substitute d defs links auto chunk
+>                               =  snd (eval chunk)
 >   where
 >   eval                        :: (CToken tok) => [Item (Pos tok)] -> (Mode,[Pos tok])
 >   eval [e]                    =  eval' e
@@ -145,17 +150,23 @@ stage (by the call to latexs, for instance in leftIndent).
 >   eval''                      :: (CToken tok) => Bool -> Atom (Pos tok) -> [Atom (Pos tok)] -> (Mode,[Pos tok])
 >   eval'' _ (Atom s) es        =  case FM.lookup (string (token s) ++ pos2string s) d `mplus` FM.lookup (string (token s)) d of
 >     Nothing                   -> (Optional False, s : args es)
->     Just (opt, opts, lhs, rhs)-> (Optional opt, set s (concat (fmap sub rhs)) ++ args bs)
+>     Just (opt, opts, lhs, rhs)-> (Optional opt, set s (case binds of [] -> fmap fromToken (addHypLinks rhs); (_:_) -> concat (fmap sub rhs)) ++ args bs)
 >         where
 >         (as, bs) | m <= n     =  (es ++ replicate (n - m) dummy, [])
 >                  | otherwise  =  splitAt n es
 >         n                     =  length lhs
 >         m                     =  length es
 >         binds                 =  zip lhs [ snd (eval'' b a []) | (b, a) <- zip opts as ]
+>         addHypLinks ts        =  case lookupTarget defs links (string (token s)) of
+>                                    Nothing -> ts
+>                                    Just s  -> [HypLink s ts]
+>         addHypLink t          =  case lookupTarget defs links (string (token s)) of
+>                                    Nothing -> t 
+>                                    Just s  -> HypLink s [t]
 >         sub t@(Varid x)       =  case FM.lookup x (FM.fromList binds) of
->             Nothing           -> [fromToken t]
+>             Nothing           -> [fromToken (addHypLink t)]
 >             Just ts           -> ts
->         sub t                 =  [fromToken t]
+>         sub t                 =  [fromToken (addHypLink t)]
 
 Whenever a token is replaced or removed, the first token of the replacement
 inherits the position of the original token.
@@ -221,5 +232,9 @@ There are subtle differences between the two styles.
 
 For inline-code.
 
-> latexs                        :: (CToken tok) => Formats -> [tok] -> Doc
-> latexs dict                   =  catenate . fmap (latex sub'space sub'space dict . token)
+> latexs                        :: (CToken tok) => Formats -> Defs -> Links -> [tok] -> Doc
+> latexs dict defs links        =  catenate . fmap (latex' sub'space sub'space dict defs links . token)
+
+> latexs'                       :: (CToken tok) => Formats -> [tok] -> Doc
+> latexs' dict                  =  catenate . fmap (latex' sub'space sub'space dict FM.empty FM.empty . token)
+

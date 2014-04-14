@@ -4,7 +4,7 @@
 
 %if codeOnly || showModuleHeader
 
-> module Directives             (  Formats, parseFormat, Equation, Substs, Subst, parseSubst, Toggles, eval, define, value, nrargs  )
+> module Directives             (  Formats, Links, Defs, parseFormat, Equation, Substs, Subst, parseSubst, Toggles, eval, define, value, nrargs  )
 > where
 >
 > import Control.Applicative    (  many, optional )
@@ -28,6 +28,8 @@
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
 > type Formats                  =  FiniteMap Char Equation
+> type Links                    =  FiniteMap Char String
+> type Defs                     =  FiniteMap Char ()
 > type Equation                 =  (Bool, [Bool], [String], [Token])
 
 ks, 20.07.03: The |Equation| type contains the following information:
@@ -113,7 +115,7 @@ substitution directive should be invoked here.
 >                                                    ++
 >                                                    [TeX False (Text "}")]
 >         where (t, u)          =  break (== '_') s
->               tok_u           =  tokenize lang False (tail u)
+>               tok_u           =  tokenize' lang (tail u)
 >               proc_u          =  case tok_u of
 >                                    Left  _ -> [f (tail u)] -- should not happen
 >                                    Right t -> t
@@ -254,7 +256,7 @@ Primitive Parser.
 Hilfsfunktionen.
 
 > parse                         :: Lang -> Parser Token a -> String -> Either Exc a
-> parse lang p str              =  do ts <- tokenize lang False str
+> parse lang p str              =  do ts <- tokenize' lang str
 >                                     let ts' = map (\t -> case t of TeX _ x -> TeX False x; _ -> t) .
 >                                               filter (\t -> catCode t /= White || isTeX t) $ ts
 >                                     maybe (Left msg) Right (run p ts')

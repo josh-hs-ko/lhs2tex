@@ -8,6 +8,7 @@
 > where
 >
 > import Control.Monad
+> import Data.Maybe
 >
 > import Verbatim ( trim, expand )
 > import Document
@@ -25,23 +26,33 @@
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
 > inline, display               :: Lang -> Formats -> String -> Either Exc Doc
-> inline lang dict              =   tokenize lang False
->                               >=> lift (latexs sub'thin sub'thin dict)
+> inline lang dict              =   tokenize' lang
+>                               >=> lift (latexs' sub'thin sub'thin dict)
 >                               >=> lift sub'inline
 
 > display lang dict             =   lift trim
 >                               >=> lift (expand 0)
->                               >=> tokenize lang False
->                               >=> lift (latexs sub'space sub'nl dict)
+>                               >=> tokenize' lang
+>                               >=> lift (latexs' sub'space sub'nl dict)
 >                               >=> lift sub'code
 
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 \subsubsection{\LaTeX\ encoding}
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
-> latexs                        :: Doc -> Doc -> Formats -> [Token] -> Doc
-> latexs sp nl dict             =  catenate . map (latex sp nl dict)
->
+
+> latexs                        :: Doc -> Doc -> Formats -> Defs -> Links -> [Token] -> Doc
+> latexs sp nl dict defs links  =  catenate . map (latex' sp nl dict defs links)
+
+> latexs'                       :: Doc -> Doc -> Formats -> [Token] -> Doc
+> latexs' sp nl dict            =  latexs sp nl dict FM.empty FM.empty
+
+> lookupTarget                  :: Defs -> Links -> String -> Maybe String
+> lookupTarget defs links s     =  (do {FM.lookup s defs; return s}) `mplus` (do {s' <- FM.lookup s links; return s'})
+
+> latex'                        :: Doc -> Doc -> Formats -> Defs -> Links -> Token -> Doc
+> latex' sp nl dict defs links t=  latex sp nl dict (maybe t (flip HypLink [t]) (lookupTarget defs links (string t)))
+
 > latex                         :: Doc -> Doc -> Formats -> Token -> Doc
 > latex sp nl dict              =  tex Empty
 >     where
@@ -65,9 +76,8 @@
 >     tex _ t@(Op t')           =  replace Empty (string t) (sub'backquoted (tex Empty t'))
 >         where cmd | isConid t'=  sub'consym
 >                   | otherwise =  sub'varsym
->     tex q (HypTarget t)       =  let d = tex q t
->                                      s = mangling (string t)
->                                  in  Text ("\\hypertarget{" ++ s ++ "}{}\\index{" ++ s ++ "@") :^: d :^: Text "}" :^: d
+>     tex q (HypTarget t)       =  hypTarget (tex q t) (string t)
+>     tex q (HypLink s ts)      =  hypLink (catenate (map (tex q) ts)) s
 >     replace q s def           =  case FM.lookup s dict of
 >         Just (_, _, [], ts)   -> q <> catenate (map (tex Empty) ts)
 >         _                     -> def

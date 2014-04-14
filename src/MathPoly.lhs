@@ -10,7 +10,7 @@ are subtle differences, and they will grow over time \dots
 
 %if codeOnly || showModuleHeader
 
-> module MathPoly               (  module MathPoly, substitute, number  )
+> module MathPoly               (  module MathPoly, substitute, substitute', number  )
 > where
 >
 > import Prelude hiding         (  lines )
@@ -38,23 +38,24 @@ are subtle differences, and they will grow over time \dots
 \subsubsection{Inline and display code}
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
-> inline                        :: Lang -> Bool -> Formats -> Bool -> String -> Either Exc Doc
-> inline lang hyp fmts auto     =   fmap unNL
+> inline                        :: Lang -> Bool -> Formats -> Defs -> Links -> Bool -> String -> Either Exc Doc
+> inline lang hyp fmts defs links auto
+>                               =   fmap unNL
 >                               >>> tokenize lang hyp
 >                               >=> lift (number 1 1)
 >                               >=> when auto (lift (filter (isNotSpace . token)))
 >                               >=> lift (partition (\t -> catCode t /= White))
 >                               >=> exprParse *** return
->                               >=> lift (substitute fmts auto) *** return
+>                               >=> lift (substitute fmts defs links auto) *** return
 >                               >=> lift (uncurry merge)
 >                               >=> lift (fmap token)
 >                               >=> when auto (lift addSpaces)
->                               >=> lift (latexs fmts)
+>                               >=> lift (latexs fmts defs links)
 >                               >=> lift sub'inline
 
-> display                       :: Lang -> Bool -> Int -> Formats -> Bool -> Int -> Int -> Stack
+> display                       :: Lang -> Bool -> Int -> Formats -> Defs -> Links -> Bool -> Int -> Int -> Stack
 >                               -> String -> Either Exc (Doc, Stack)
-> display lang hyp line fmts auto sep lat stack
+> display lang hyp line fmts defs links auto sep lat stack
 >                               =   lift trim
 >                               >=> lift (expand 0)
 >                               >=> tokenize lang hyp
@@ -62,7 +63,7 @@ are subtle differences, and they will grow over time \dots
 >       --                     |>=> when auto (lift (filter (isNotSpace . token)))|
 >                               >=> lift (partition (\t -> catCode t /= White))
 >                               >=> exprParse *** return
->                               >=> lift (substitute fmts auto) *** return
+>                               >=> lift (substitute fmts defs links auto) *** return
 >                               >=> lift (uncurry merge)
 >                               >=> lift lines
 >                               >=> when auto (lift (fmap addSpaces))
@@ -76,7 +77,7 @@ are subtle differences, and they will grow over time \dots
 >                               >=> return *** when auto (lift (fmap (fmap (filter (isNotSpace . token)))))
 >       --                     |>=> return *** when auto (lift (fmap (fmap (addSpaces . filter (isNotSpace . token)))))|
 >                               >=> lift (\((cs,z),ats) -> (cs,(z,ats)))
->                               >=> return *** lift (\(z,ats) -> leftIndent fmts auto z [] ats)
+>                               >=> return *** lift (\(z,ats) -> leftIndent fmts defs links auto z [] ats)
 >       -- ks, 17.07.2003: i've changed "stack" into "[]" and thereby disabled
 >       -- the global stack for now as it leads to unexepected behaviour
 >                               >=> lift (\(cs,(d,stack)) -> (sub'code (columns cs <> d),stack))
@@ -330,12 +331,12 @@ this is not a good idea, but let's see.
 
 As a final step, the current line is placed on the stack.
 
-> leftIndent                    :: Formats -> Bool 
+> leftIndent                    :: Formats -> Defs -> Links -> Bool 
 >                               -> [Col]        -- centered columns
 >                               -> Stack        -- current stack
 >                               -> [Line [Pos Token]]
 >                               -> (Doc, Stack)
-> leftIndent dict auto z stack
+> leftIndent dict defs links auto z stack
 >                               =  loop True stack
 >   where
 >   copy d | auto               =  d
@@ -371,7 +372,7 @@ As a final step, the current line is placed on the stack.
 >   mkFromTo stack bn en c ts rs ls
 >     | bn == en                =  -- this can happen at the beginning of a line due to indentation
 >                                  (rest,stack')
->     | otherwise               =  (sub'fromto bn en (latexs dict ts)
+>     | otherwise               =  (sub'fromto bn en (latexs dict defs links ts)
 >                                     <> (if null rs then sep ls else Empty) <> rest
 >                                  ,stack'
 >                                  )

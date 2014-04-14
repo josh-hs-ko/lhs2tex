@@ -5,7 +5,6 @@
 > import System.IO
 > import System.Process
 > import Data.Maybe
-> import Data.Set
 >
 > import Version
 > import TeXCommands
@@ -33,11 +32,12 @@
 >                                          files      :: [(FilePath, LineNo)], -- includees (?)
 >                                          path       :: FilePath,      -- for relative includes
 >                                          fmts       :: Formats,
+>                                          links      :: Links,
 >                                          subst      :: Substs,
 >                                          stack      :: [Formats],     -- for grouping
 >                                          toggles    :: Toggles,       -- @%let@ defined toggles
 >                                          conds      :: [CondInfo],    -- for conditional directives
->                                          defs       :: Maybe (Set String),
+>                                          defs       :: Maybe Defs,
 >                                          align      :: Maybe Int,     -- math: internal alignment column
 >                                          stacks     :: (Math.Stack, Math.Stack),      -- math: indentation stacks
 >                                          separation :: Int,           -- poly: separation
@@ -65,6 +65,7 @@ Initial state.
 >                                          files      = [],
 >                                          path       = "",
 >                                          fmts       = FM.empty,
+>                                          links      = FM.empty,
 >                                          subst      = FM.empty,
 >                                          stack      = [],
 >                                          conds      = [],

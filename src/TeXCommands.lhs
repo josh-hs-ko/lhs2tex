@@ -43,7 +43,7 @@ These don't really belong into a module named TeXCommands:
 ks, 16.08.2004: added EOF.
 
 >
-> data Directive                =  Format | Include | Let | File | Options
+> data Directive                =  Format | Link | Include | Let | File | Options
 >                               |  Align | Separation | Latency | Begin | End | Subst
 >                               |  If | Elif | Else | Endif | EOF
 >                                  deriving (Eq, Show)
@@ -86,7 +86,7 @@ Encoding and decoding of commands, environments, and directives.
 >                                    ("ignore", Ignore), ("verbatim*", Verbatim True),
 >                                    ("verbatim", Verbatim False) ]
 > instance Representation Directive where
->     representation            =  [ ("format", Format), ("include", Include),
+>     representation            =  [ ("format", Format), ("link", Link), ("include", Include),
 >                                    ("if", If), ("elif", Elif),
 >                                    ("else", Else), ("endif", Endif),
 >                                    ("let", Let), ("file", File),

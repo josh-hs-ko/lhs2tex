@@ -37,6 +37,7 @@ A Haskell lexer, based on the Prelude function \hs{lex}.
 >                               |  Qual [String] Token
 >                               |  Op Token
 >                               |  HypTarget Token
+>                               |  HypLink String [Token]
 >                                  deriving (Eq, Show)
 
 ks, 03.09.2003: Modified the |Qual| case to contain a list
@@ -79,11 +80,15 @@ This should probably be either documented better or be removed again.
 > string (Qual m s)             =  concatMap (++".") m ++ string s
 > string (Op s)                 =  "`" ++ string s ++ "`"
 > string (HypTarget t)          =  defPrefix ++ string t
+> string (HypLink s ts)         =  s ++ defPrefix ++ concat (map string ts)
 
 The main function.
 
 > tokenize                      :: Lang -> Bool -> String -> Either Exc [Token]
 > tokenize lang hyp             =  lift tidyup <=< lift qualify <=< lexify lang hyp
+
+> tokenize'                     :: Lang -> String -> Either Exc [Token]
+> tokenize' lang                =  tokenize lang False
 
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 \subsubsection{Phase 1}
@@ -385,6 +390,8 @@ This is related to the change above in function |string|.
 >     catCode (Qual _ t)        =  catCode t
 >     catCode (Op _)            =  Sep
 >     catCode (HypTarget c)     =  catCode c
+>     catCode (HypLink s [])    =  impossible "catCode"
+>     catCode (HypLink s (c:_)) =  catCode c
 >     token                     =  id
 >     inherit _ t               =  t
 >     fromToken                 =  id

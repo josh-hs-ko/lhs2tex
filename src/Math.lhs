@@ -33,28 +33,28 @@
 
 > inline                        :: Lang -> Formats -> Bool -> String -> Either Exc Doc
 > inline lang fmts auto         =   fmap unNL
->                               >>> tokenize lang False
+>                               >>> tokenize' lang
 >                               >=> lift (number 1 1)
 >                               >=> when auto (lift (filter (isNotSpace . token)))
 >                               >=> lift (partition (\t -> catCode t /= White))
 >                               >=> exprParse *** return
->                               >=> lift (substitute fmts auto) *** return
+>                               >=> lift (substitute' fmts auto) *** return
 >                               >=> lift (uncurry merge)
 >                               >=> lift (fmap token)
 >                               >=> when auto (lift addSpaces)
->                               >=> lift (latexs fmts)
+>                               >=> lift (latexs' fmts)
 >                               >=> lift sub'inline
 
 > display                       :: Lang -> Formats -> Bool -> (Stack, Stack) -> Maybe Int
 >                               -> String -> Either Exc (Doc, (Stack,Stack))
 > display lang fmts auto sts col=   lift trim
 >                               >=> lift (expand 0)
->                               >=> tokenize lang False
+>                               >=> tokenize' lang
 >                               >=> lift (number 1 1)
 >                               >=> when auto (lift (filter (isNotSpace . token)))
 >                               >=> lift (partition (\t -> catCode t /= White))
 >                               >=> exprParse *** return
->                               >=> lift (substitute fmts auto) *** return
+>                               >=> lift (substitute' fmts auto) *** return
 >                               >=> lift (uncurry merge)
 >                               >=> lift lines
 >                               >=> lift (align col)
@@ -199,13 +199,13 @@ Die Funktion |isInternal| pr"uft, ob |v| ein spezielles Symbol wie
 >   loop lst rst []             =  (Empty, (lst, rst))
 >   loop lst rst (l : ls)       =  case l of
 >       Blank                   -> loop lst rst ls
->       Three l c r             -> (sub'column3 (copy lskip <> latexs dict l)
->                                               (latexs dict c)
->                                               (copy rskip <> latexs dict r) <> sep ls <> rest, st')
+>       Three l c r             -> (sub'column3 (copy lskip <> latexs' dict l)
+>                                               (latexs' dict c)
+>                                               (copy rskip <> latexs' dict r) <> sep ls <> rest, st')
 >           where (lskip, lst') =  indent l lst
 >                 (rskip, rst') =  indent r rst
 >                 (rest, st')   =  loop lst' rst' ls -- does not work: |if null l && null c then rst' else []|
->       Multi m                 -> (sub'column1 (copy lskip <> latexs dict m) <> sep ls <> rest, st')
+>       Multi m                 -> (sub'column1 (copy lskip <> latexs' dict m) <> sep ls <> rest, st')
 >           where (lskip, lst') =  indent m lst
 >                 (rest, st')   =  loop lst' [] ls
 >
@@ -224,7 +224,7 @@ Die Funktion |isInternal| pr"uft, ob |v| ein spezielles Symbol wie
 >           where
 >           skip'               =  case span (\u -> col u < col t) line of
 >               (us, v : vs) | col v == col t
->                               -> skip <> sub'phantom (latexs dict us)
+>                               -> skip <> sub'phantom (latexs' dict us)
 >               -- does not work: |(us, _) -> skip ++ [Phantom (fmap token us), Skip (col t - last (c : fmap col us))]|
 >               _               -> skip <> sub'hskip (Text em)
 >                   where em    =  showFFloat (Just 2) (0.5 * fromIntegral (col t - c) :: Double) ""

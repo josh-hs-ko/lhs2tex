@@ -22,7 +22,7 @@ way that is compatible with the @poly@ or @math@ formatters.
 > import HsLexer
 > import qualified FiniteMap as FM
 > import Auxiliaries
-> import MathPoly               (  exprParse, substitute, number )
+> import MathPoly               (  exprParse, substitute', number )
 > import TeXCommands            (  Lang(..) )
 
 %endif
@@ -37,11 +37,11 @@ in the ``real'' program code. All comments are deleted.
 > display                       :: Lang -> Formats -> String -> Either Exc Doc
 > display lang fmts             =   lift trim
 >                               >=> lift (expand 0)
->                               >=> tokenize lang False
+>                               >=> tokenize' lang
 >                               >=> lift (number 1 1)
 >                               >=> lift (partition (\t -> catCode t /= White))
 >                               >=> exprParse *** return
->                               >=> lift (substitute fmts False) *** return
+>                               >=> lift (substitute' fmts False) *** return
 >                               >=> lift (uncurry merge)
 >                               >=> lift (fmap token)
 >                               >=> lift (latexs sub'space sub'nl fmts)
