@@ -4,7 +4,7 @@
 
 %if codeOnly || showModuleHeader
 
-> module Directives             (  Formats, Links, Defs, parseFormat, Equation, Substs, Subst, parseSubst, Toggles, eval, define, value, nrargs  )
+> module Directives             (  Formats, Links, TargetStatus(..), Defs, parseFormat, Equation, Substs, Subst, parseSubst, Toggles, eval, define, value, nrargs  )
 > where
 >
 > import Control.Applicative    (  many, optional )
@@ -27,9 +27,11 @@
 \subsubsection{@%format@ directives}
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
+> data TargetStatus = Duplicate | NoAlias | Alias String
+
 > type Formats                  =  FiniteMap Char Equation
 > type Links                    =  FiniteMap Char String
-> type Defs                     =  FiniteMap Char ()
+> type Defs                     =  FiniteMap Char TargetStatus
 > type Equation                 =  (Bool, [Bool], [String], [Token])
 
 ks, 20.07.03: The |Equation| type contains the following information:
@@ -75,7 +77,7 @@ Format directives. \NB @%format ( = "(\;"@ is legal.
 >     tex (Conid s)             =  subscript Conid s
 >     tex (Qual [] s)           =  tex s
 >     tex (Qual (m:ms) s)       =  Conid m : tex (Qual ms s)
->     tex (HypTarget s)         =  tex s
+>     tex (HypTarget s mt mu)   =  tex s
 >      -- ks, 03.09.2003: was "tex (Qual m s) = Conid m : tex s"; 
 >      -- seems strange though ...
 >     subscript f s  

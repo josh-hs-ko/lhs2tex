@@ -48,7 +48,9 @@
 > latexs' sp nl dict            =  latexs sp nl dict FM.empty FM.empty
 
 > lookupTarget                  :: Defs -> Links -> String -> Maybe String
-> lookupTarget defs links s     =  (do {FM.lookup s defs; return s}) `mplus` (do {s' <- FM.lookup s links; return s'})
+> lookupTarget defs links s     =  (maybe Nothing (\st -> case st of Duplicate -> Nothing; NoAlias -> Just s; Alias t -> Just t)
+>                                    (FM.lookup s defs))
+>                                    `mplus` (do {s' <- FM.lookup s links; return s'})
 
 > latex'                        :: Doc -> Doc -> Formats -> Defs -> Links -> Token -> Doc
 > latex' sp nl dict defs links t=  latex sp nl dict (maybe t (flip HypLink [t]) (lookupTarget defs links (string t)))
@@ -76,7 +78,9 @@
 >     tex _ t@(Op t')           =  replace Empty (string t) (sub'backquoted (tex Empty t'))
 >         where cmd | isConid t'=  sub'consym
 >                   | otherwise =  sub'varsym
->     tex q (HypTarget t)       =  hypTarget (tex q t) (string t)
+>     tex q (HypTarget t Nothing Nothing)= let d = tex q t in hypTarget d d (string t)
+>     tex q (HypTarget t (Just t') Nothing) = let d = tex q t in hypTarget d d (string t')
+>     tex q (HypTarget t (Just t') (Just t'')) = hypTarget (tex q t) (tex q t'') (string t')
 >     tex q (HypLink s ts)      =  hypLink (catenate (map (tex q) ts)) s
 >     replace q s def           =  case FM.lookup s dict of
 >         Just (_, _, [], ts)   -> q <> catenate (map (tex Empty) ts)

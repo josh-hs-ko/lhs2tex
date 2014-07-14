@@ -166,7 +166,8 @@ because with some versions of GHC it triggers ambiguity errors with
 >   , Option []    ["collect-def"]
 >                              (NoArg (return, id, [CollectDef]))                           "collect definitions"
 >   , Option []    ["hyp-def"] (ReqArg (\f -> (\s -> do (t , _) <- chaseFile [] f
->                                                       return $ s { defs = Just (FM.fromList (zip (words t) (repeat ()))) }, id, [])) "file")
+>                                                       let ts = map words (lines t)
+>                                                       return $ s { defs = Just (foldr (\(x:xs) trie -> FM.add (x, maybe (case xs of [] -> NoAlias; [y] -> Alias y) (const Duplicate) (FM.lookup x trie)) trie) FM.empty ts) }, id, [])) "file")
 >                                                                                           "generate hyperlinks to definitions in <file>"
 >   , Option []    ["pre"]     (NoArg (return, id, [Pre]))                                  "act as ghc preprocessor"
 >   , Option ['o'] ["output"]  (ReqArg (\f -> (\s -> do h <- openOutputFile f

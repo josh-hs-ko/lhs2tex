@@ -36,7 +36,7 @@ A Haskell lexer, based on the Prelude function \hs{lex}.
 >                               |  TeX Bool Doc        -- for inline \TeX (True) and format replacements (False)
 >                               |  Qual [String] Token
 >                               |  Op Token
->                               |  HypTarget Token
+>                               |  HypTarget Token (Maybe Token) (Maybe Token)
 >                               |  HypLink String [Token]
 >                                  deriving (Eq, Show)
 
@@ -79,13 +79,13 @@ This should probably be either documented better or be removed again.
 > string (TeX _ _)              =  "" -- |impossible "string"|
 > string (Qual m s)             =  concatMap (++".") m ++ string s
 > string (Op s)                 =  "`" ++ string s ++ "`"
-> string (HypTarget t)          =  defPrefix ++ string t
+> string (HypTarget t mu mv)    =  defPrefix ++ string t
 > string (HypLink s ts)         =  s ++ defPrefix ++ concat (map string ts)
 
 The main function.
 
 > tokenize                      :: Lang -> Bool -> String -> Either Exc [Token]
-> tokenize lang hyp             =  lift tidyup <=< lift qualify <=< lexify lang hyp
+> tokenize lang hyp             =  lift tidyup <=< lift qualify <=< lift mergeHypTargets <=< lexify lang hyp
 
 > tokenize'                     :: Lang -> String -> Either Exc [Token]
 > tokenize' lang                =  tokenize lang False
@@ -109,7 +109,7 @@ ks, 28.08.2008: New: Agda and Haskell modes.
 > lex'' lang ""                 =  Nothing
 > lex'' lang s
 >   | defPrefix `isPrefixOf` s  =  do (t, s') <- lex' lang (drop (length defPrefix) s)
->                                     return (HypTarget t , s')
+>                                     return (HypTarget t Nothing Nothing , s')
 > lex'' lang s                  =  lex' lang s
 >
 > lex'                          :: Lang -> String -> Maybe (Token, String)
@@ -257,6 +257,12 @@ Keywords
 \subsubsection{Phase 2}
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
+> mergeHypTargets :: [Token] -> [Token]
+> mergeHypTargets [] = []
+> mergeHypTargets (HypTarget t Nothing Nothing : Space _ : HypTarget u Nothing Nothing : Space _ : HypTarget v Nothing Nothing : ts) = HypTarget t (Just u) (Just v) : mergeHypTargets ts
+> mergeHypTargets (HypTarget t Nothing Nothing : Space _ : HypTarget u Nothing Nothing : ts) = HypTarget t (Just u) Nothing : mergeHypTargets ts
+> mergeHypTargets (t : ts) = t : mergeHypTargets ts
+
 Merging qualified names.
 
 ks, 27.06.2003: I have modified the fifth case of |qualify|
@@ -389,7 +395,7 @@ This is related to the change above in function |string|.
 >     catCode (TeX _ _)         =  NoSep -- |impossible "catCode"|
 >     catCode (Qual _ t)        =  catCode t
 >     catCode (Op _)            =  Sep
->     catCode (HypTarget c)     =  catCode c
+>     catCode (HypTarget c mt mu)=  catCode c
 >     catCode (HypLink s [])    =  impossible "catCode"
 >     catCode (HypLink s (c:_)) =  catCode c
 >     token                     =  id
