@@ -24,3 +24,6 @@
 /lhs2TeX
 /Lhs2TeX
 /dist
+/.cabal-sandbox
+/codex.tags
+/hscope.out*

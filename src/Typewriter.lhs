@@ -53,6 +53,8 @@
 >                                    `mplus` (do {s' <- FM.lookup s links; return s'})
 
 > latex'                        :: Doc -> Doc -> Formats -> Defs -> Links -> Token -> Doc
+> latex' sp nl dict defs links ht@(HypTarget t _ _)
+>                               =  latex sp nl dict (maybe t (const ht) (lookupTarget defs links (string t)))
 > latex' sp nl dict defs links t=  latex sp nl dict (maybe t (flip HypLink [t]) (lookupTarget defs links (string t)))
 
 > latex                         :: Doc -> Doc -> Formats -> Token -> Doc
