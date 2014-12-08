@@ -36,7 +36,7 @@ A Haskell lexer, based on the Prelude function \hs{lex}.
 >                               |  TeX Bool Doc        -- for inline \TeX (True) and format replacements (False)
 >                               |  Qual [String] Token
 >                               |  Op Token
->                               |  HypTarget Token (Maybe Token) (Maybe Token)
+>                               |  HypTarget Token (Maybe Token) (Maybe Token) Bool
 >                               |  HypLink String [Token]
 >                                  deriving (Eq, Show)
 
@@ -79,7 +79,7 @@ This should probably be either documented better or be removed again.
 > string (TeX _ _)              =  "" -- |impossible "string"|
 > string (Qual m s)             =  concatMap (++".") m ++ string s
 > string (Op s)                 =  "`" ++ string s ++ "`"
-> string (HypTarget t mu mv)    =  defPrefix ++ string t
+> string (HypTarget t mu mv ht) =  defPrefix ++ string t
 > string (HypLink s ts)         =  s ++ defPrefix ++ concat (map string ts)
 
 The main function.
@@ -109,7 +109,7 @@ ks, 28.08.2008: New: Agda and Haskell modes.
 > lex'' lang ""                 =  Nothing
 > lex'' lang s
 >   | defPrefix `isPrefixOf` s  =  do (t, s') <- lex' lang (drop (length defPrefix) s)
->                                     return (HypTarget t Nothing Nothing , s')
+>                                     return (HypTarget t Nothing Nothing True , s')
 > lex'' lang s                  =  lex' lang s
 >
 > lex'                          :: Lang -> String -> Maybe (Token, String)
@@ -259,8 +259,11 @@ Keywords
 
 > mergeHypTargets :: [Token] -> [Token]
 > mergeHypTargets [] = []
-> mergeHypTargets (HypTarget t Nothing Nothing : Space _ : HypTarget u Nothing Nothing : Space _ : HypTarget v Nothing Nothing : ts) = HypTarget t (Just u) (Just v) : mergeHypTargets ts
-> mergeHypTargets (HypTarget t Nothing Nothing : Space _ : HypTarget u Nothing Nothing : ts) = HypTarget t (Just u) Nothing : mergeHypTargets ts
+> mergeHypTargets (HypTarget t Nothing Nothing _ : Space _ :
+>                  HypTarget u Nothing Nothing _ : Space _ :
+>                  HypTarget v Nothing Nothing _ : ts) = HypTarget t (Just u) (Just v) True : mergeHypTargets ts
+> mergeHypTargets (HypTarget t Nothing Nothing _ : Space _ :
+>                  HypTarget u Nothing Nothing _ : ts) = HypTarget t (Just u) Nothing True : mergeHypTargets ts
 > mergeHypTargets (t : ts) = t : mergeHypTargets ts
 
 Merging qualified names.
@@ -395,7 +398,7 @@ This is related to the change above in function |string|.
 >     catCode (TeX _ _)         =  NoSep -- |impossible "catCode"|
 >     catCode (Qual _ t)        =  catCode t
 >     catCode (Op _)            =  Sep
->     catCode (HypTarget c mt mu)=  catCode c
+>     catCode (HypTarget c mt mu ht)=  catCode c
 >     catCode (HypLink s [])    =  impossible "catCode"
 >     catCode (HypLink s (c:_)) =  catCode c
 >     token                     =  id

@@ -77,7 +77,7 @@ Format directives. \NB @%format ( = "(\;"@ is legal.
 >     tex (Conid s)             =  subscript Conid s
 >     tex (Qual [] s)           =  tex s
 >     tex (Qual (m:ms) s)       =  Conid m : tex (Qual ms s)
->     tex (HypTarget s mt mu)   =  tex s
+>     tex (HypTarget s _ _ _)   =  tex s
 >      -- ks, 03.09.2003: was "tex (Qual m s) = Conid m : tex s"; 
 >      -- seems strange though ...
 >     subscript f s  

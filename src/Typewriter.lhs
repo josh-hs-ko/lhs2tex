@@ -53,8 +53,8 @@
 >                                    `mplus` (do {s' <- FM.lookup s links; return s'})
 
 > latex'                        :: Doc -> Doc -> Formats -> Defs -> Links -> Token -> Doc
-> latex' sp nl dict defs links ht@(HypTarget t _ _)
->                               =  latex sp nl dict (maybe t (const ht) (lookupTarget defs links (string t)))
+> latex' sp nl dict defs links ht@(HypTarget t mt mt' True)
+>                               =  latex sp nl dict (maybe (HypTarget t mt mt' False) (const ht) (lookupTarget defs links (string t)))
 > latex' sp nl dict defs links t=  latex sp nl dict (maybe t (flip HypLink [t]) (lookupTarget defs links (string t)))
 
 > latex                         :: Doc -> Doc -> Formats -> Token -> Doc
@@ -80,9 +80,9 @@
 >     tex _ t@(Op t')           =  replace Empty (string t) (sub'backquoted (tex Empty t'))
 >         where cmd | isConid t'=  sub'consym
 >                   | otherwise =  sub'varsym
->     tex q (HypTarget t Nothing Nothing)= let d = tex q t in hypTarget d d (string t)
->     tex q (HypTarget t (Just t') Nothing) = let d = tex q t in hypTarget d d (string t')
->     tex q (HypTarget t (Just t') (Just t'')) = hypTarget (tex q t) (tex q t'') (string t')
+>     tex q (HypTarget t Nothing   Nothing    bht) = let d = tex q t in hypTarget d d (string t ) bht
+>     tex q (HypTarget t (Just t') Nothing    bht) = let d = tex q t in hypTarget d d (string t') bht
+>     tex q (HypTarget t (Just t') (Just t'') bht) = hypTarget (tex q t) (tex q t'')  (string t') bht
 >     tex q (HypLink s ts)      =  hypLink (catenate (map (tex q) ts)) s
 >     replace q s def           =  case FM.lookup s dict of
 >         Just (_, _, [], ts)   -> q <> catenate (map (tex Empty) ts)
