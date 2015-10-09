@@ -31,7 +31,7 @@
 
 \newcommand*{\PDF}{{\smaller{PDF}}\xspace}
 \newcommand*{\CTAN}{{\smaller{CTAN}}\xspace}
-%format lhs2TeX = "\textrm{lhs}\textsf{2}\TeX"
+%format lhs2TeX = "\text{\textrm{lhs}\textsf{2}\TeX}"
 \setdefaultitem{\textbf{--}}{}{}{}
 
 %let doc = True
@@ -1608,8 +1608,8 @@ can sometimes fail. Do not expect too much from this feature.
 
 The following input shows an example of how to call @ghci@:
 \input{InteractiveGhciIn}%
-The option @-fglasgow-exts@ is necessary to make @ghci@
-accept the @forall@ keyword (it only serves as an example
+The options are necessary to make @ghci@
+accept and print the @forall@ keyword (it only serves as an example
 here how to pass options to the interpreter). 
 The output will look similar to this:
 \begin{colorsurround}

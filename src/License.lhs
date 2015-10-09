@@ -8,8 +8,8 @@ GPL-related program information
 
 > programInfo                   :: String
 > programInfo                   =
->     "lhs2TeX " ++ version ++ ", Copyright (C) 1997-2014 Ralf Hinze, Andres Loeh\n\
->     \  modified by Josh Ko (5 Dec 2014)\n\n\
+>     "lhs2TeX " ++ version ++ ", Copyright (C) 1997-2015 Ralf Hinze, Andres Loeh\n\n\
+>     \  modified by Josh Ko (9 Oct 2015)\n\n\
 >     \lhs2TeX comes with ABSOLUTELY NO WARRANTY;\n\
 >     \for details type `lhs2TeX --warranty'.\n\
 >     \This is free software, and you are welcome to redistribute it\n\
