@@ -6,11 +6,13 @@ license-file:   LICENSE
 author:         Ralf Hinze <ralf.hinze@comlab.ox.ac.uk>, Andres Loeh <lhs2tex@andres-loeh.de>
 maintainer:     Andres Loeh <lhs2tex@andres-loeh.de>
 stability:      stable
-homepage:       http://www.andres-loeh.de/lhs2tex/
+homepage:       https://github.com/kosmikus/lhs2tex
+bug-reports:    https://github.com/kosmikus/lhs2tex/issues
 synopsis:       Preprocessor for typesetting Haskell sources with LaTeX
 description:    Preprocessor for typesetting Haskell sources with LaTeX
 category:       Development, Language
 build-type:     Custom
+tested-with:    GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.1
 extra-source-files:     AUTHORS
                         CHANGELOG
                         INSTALL
@@ -43,6 +45,17 @@ extra-source-files:     AUTHORS
                         configure
                         mkinstalldirs
                         install-sh
+
+custom-setup
+  setup-depends:        base,
+                        Cabal,
+                        directory,
+                        process,
+                        regex-compat
+
+source-repository head
+  type:                 git
+  location:             https://github.com/kosmikus/lhs2tex
 
 executable lhs2TeX
   main-is:              Main.lhs
