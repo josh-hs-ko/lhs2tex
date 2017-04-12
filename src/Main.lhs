@@ -8,7 +8,7 @@
 > where
 >
 > import Data.Char ( isSpace )
-> import Data.List ( isPrefixOf, words )
+> import Data.List ( isPrefixOf, words, dropWhileEnd )
 > import Data.Maybe (  isJust  )
 > import System.IO
 > import System.Directory ( copyFile )
@@ -253,6 +253,10 @@ We abort immediately if an error has occured.
 >                                     unless (style st `elem` [CodeOnly,NewCode]) $
 >                                       do result <- external (map unNL s)
 >                                          inline result
+> format (Command TextEval s)   =  do st <- get
+>                                     unless (style st `elem` [CodeOnly,NewCode]) $
+>                                       do result <- external (map unNL s)
+>                                          out (Text result)
 > format (Command Perform s)    =  do st <- get
 >                                     unless (style st `elem` [CodeOnly,NewCode]) $
 >                                       do result <- external (map unNL s)
@@ -580,7 +584,7 @@ and the second |magic| plus prompt is the result we look for.
 >                                      fmap (l:) (readMagic n')
 
 > extract                       :: String -> String
-> extract s                     =  v
+> extract s                     =  dropWhileEnd isSpace (dropWhile isSpace v)
 >     where (t, u)              =  breaks (isPrefixOf magic) s
 >           -- t contains everything up to magic, u starts with magic
 >           -- |u'                      =  tail (dropWhile (/='\n') u)|

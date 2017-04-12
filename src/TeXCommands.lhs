@@ -33,7 +33,7 @@ These don't really belong into a module named TeXCommands:
 >                               |  Error       Exc                      -- parsing error
 >                                  deriving (Show)
 
-> data Command                  =  Hs | Eval | Perform | Vrb Bool
+> data Command                  =  Hs | Eval | TextEval | Perform | Vrb Bool
 >                                  deriving (Eq, Show)
 >
 > data Environment              =  Haskell_ | Code | Spec | Evaluate | Hide | Ignore | Verbatim Bool
@@ -77,7 +77,7 @@ Encoding and decoding of commands, environments, and directives.
 > instance Representation Lang where
 >     representation            =  [ ("haskell", Haskell), ("agda", Agda) ]
 > instance Representation Command where
->     representation            =  [ ("hs", Hs), ("eval", Eval),
+>     representation            =  [ ("hs", Hs), ("eval", Eval), ("eval*", TextEval),
 >                                    ("perform", Perform), ("verb*", Vrb True),
 >                                    ("verb", Vrb False) ]
 > instance Representation Environment where

@@ -1,5 +1,15 @@
 \documentclass[10pt]{scrartcl}
 
+\makeatletter
+\DeclareOldFontCommand{\rm}{\normalfont\rmfamily}{\mathrm}
+\DeclareOldFontCommand{\sf}{\normalfont\sffamily}{\mathsf}
+\DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
+\DeclareOldFontCommand{\bf}{\normalfont\bfseries}{\mathbf}
+\DeclareOldFontCommand{\it}{\normalfont\itshape}{\mathit}
+\DeclareOldFontCommand{\sl}{\normalfont\slshape}{\@@nomath\sl}
+\DeclareOldFontCommand{\sc}{\normalfont\scshape}{\@@nomath\sc}
+\makeatother
+
 % save linebreak; see below
 \let\origlinebreak=\\
 
