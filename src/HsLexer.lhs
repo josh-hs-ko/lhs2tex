@@ -246,10 +246,10 @@ Keywords
 >                                    "where" ]
 > keywords Agda                 =  [ "let", "in", "where", "field", "with",
 >                                    "postulate", "primitive", "open", "import",
->                                    "module", "data", "codata", "record", "infix",
->                                    "infixl", "infixr", "mutual", "abstract",
->                                    "private", "forall", "using", "hiding",
->                                    "renaming", "public" ]
+>                                    "module", "data", "coinductive", "record",
+>                                    "infix", "infixl", "infixr", "mutual",
+>                                    "abstract", "private", "forall", "using",
+>                                    "hiding", "renaming", "public" ]
 
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 \subsubsection{Phase 2}
