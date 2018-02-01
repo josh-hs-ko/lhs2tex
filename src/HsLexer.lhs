@@ -146,12 +146,10 @@ ks, 28.08.2008: New: Agda and Haskell modes.
 >     | c == ':'                =  let (t, u) = span (isSymbol lang) s in return (consymid lang (c : t), u)
 >     | isDigit c               =  do let (ds, t) = span isDigit s
 >                                     (fe, u)  <- lexFracExp t
->                                     return (numeral lang (c : ds ++ fe), u)
+>                                     return (Numeral (c : ds ++ fe), u)
 >     | isSymbol lang c         =  let (t, u) = span (isSymbol lang) s in return (varsymid lang (c : t), u)
 >     | otherwise               =  Nothing
 >     where
->     numeral Agda              =  Varid
->     numeral Haskell           =  Numeral
 >     classify s
 >         | s `elem` keywords lang
 >                               =  Keyword s
